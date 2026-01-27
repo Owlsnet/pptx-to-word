@@ -20,6 +20,19 @@ python app.py
 
 Then open `http://localhost:8000` in your browser.
 
+## Getting the files
+
+Use either method below:
+
+1. **Git (recommended)**:
+   ```bash
+   git clone <your-repo-url>
+   cd pptx-to-word
+   ```
+2. **Download ZIP**:
+   - Click the green **Code** button on GitHub.
+   - Choose **Download ZIP**, then unzip it on your computer.
+
 ## Free hosting options
 
 - **Render / Railway**: Deploy this Flask app with a free web service and connect to a GitHub repo.
