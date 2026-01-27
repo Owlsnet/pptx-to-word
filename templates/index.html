@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PPTX to Word Converter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>PPTX → Word</h1>
+        <p>Upload a PPTX and download a Word document for easy viewing.</p>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <section class="messages">
+            {% for category, message in messages %}
+              <div class="message message-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </section>
+        {% endif %}
+      {% endwith %}
+
+      <form class="card" method="post" action="/convert" enctype="multipart/form-data">
+        <label for="pptx_file">PPTX file</label>
+        <input id="pptx_file" name="pptx_file" type="file" accept=".pptx" required />
+        <button type="submit">Convert to Word</button>
+        <p class="helper">Slides are exported as headings with their text content.</p>
+      </form>
+
+      <section class="card info">
+        <h2>Free hosting ideas</h2>
+        <ul>
+          <li><strong>Render</strong> or <strong>Railway</strong> for a simple Flask app.</li>
+          <li><strong>Cloudflare Pages + Workers</strong> if you rebuild it as a serverless app.</li>
+          <li><strong>Fly.io</strong> if you want a free container-based deployment.</li>
+        </ul>
+        <p>All are free tiers with limits, so pick what matches your expected usage.</p>
+      </section>
+    </main>
+  </body>
+</html>
