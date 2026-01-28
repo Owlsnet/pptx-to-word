@@ -28,8 +28,9 @@ def convert() -> Response:
         flash("Please choose a PPTX file to upload.", "error")
         return redirect("/")
 
-    filename = secure_filename(upload.filename)
-    ext = Path(filename).suffix.lower()
+    original_filename = upload.filename
+    filename = secure_filename(original_filename)
+    ext = Path(original_filename).suffix.lower()
     if ext not in ALLOWED_EXTENSIONS:
         flash("Only .pptx files are supported.", "error")
         return redirect("/")
