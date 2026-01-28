@@ -3,7 +3,10 @@ from __future__ import annotations
 import io
 import os
 import shutil
+import json
 import subprocess
+import urllib.parse
+import urllib.request
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -19,11 +22,13 @@ ALLOWED_EXTENSIONS = {".pptx"}
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("APP_SECRET", "dev-secret")
+TURNSTILE_SITE_KEY = os.environ.get("TURNSTILE_SITE_KEY")
+TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY")
 
 
 @app.get("/")
 def index() -> str:
-    return render_template("index.html")
+    return render_template("index.html", turnstile_site_key=TURNSTILE_SITE_KEY)
 
 
 @app.post("/convert")
@@ -85,7 +90,21 @@ def convert_pptx_to_docx(pptx_bytes: io.BytesIO) -> io.BytesIO:
         output = io.BytesIO()
         document.save(output)
         output.seek(0)
-        return output
+    return output
+
+
+def verify_turnstile(token: str) -> bool:
+    data = urllib.parse.urlencode(
+        {"secret": TURNSTILE_SECRET_KEY, "response": token}
+    ).encode()
+    try:
+        with urllib.request.urlopen(
+            "https://challenges.cloudflare.com/turnstile/v0/siteverify", data=data
+        ) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+            return bool(payload.get("success"))
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def convert_pptx_to_images(
@@ -180,3 +199,11 @@ def set_section_page(section, width_in: float, height_in: float) -> None:
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8000")), debug=True)
+    if TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY:
+        token = request.form.get("cf-turnstile-response")
+        if not token:
+            flash("Please complete the captcha challenge.", "error")
+            return redirect("/")
+        if not verify_turnstile(token):
+            flash("Captcha verification failed. Please try again.", "error")
+            return redirect("/")

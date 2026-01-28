@@ -71,6 +71,10 @@ button:hover {
   font-size: 0.95rem;
 }
 
+.turnstile {
+  margin: 16px 0;
+}
+
 .info ul {
   padding-left: 20px;
 }

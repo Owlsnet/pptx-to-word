@@ -12,6 +12,8 @@ A simple Flask web app that converts PPTX presentations into Word documents so t
 ## Local setup
 
 This app requires **LibreOffice** to render PPTX slides into images.
+To enable Cloudflare Turnstile captcha, set `TURNSTILE_SITE_KEY` and
+`TURNSTILE_SECRET_KEY` in your environment.
 
 ```bash
 python -m venv .venv
