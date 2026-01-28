@@ -54,9 +54,8 @@ def convert() -> Response:
 def convert_pptx_to_docx(pptx_bytes: io.BytesIO) -> io.BytesIO:
     presentation = Presentation(pptx_bytes)
     document = Document()
-    document.add_heading("PPTX Export", level=1)
 
-    for slide_index, slide in enumerate(presentation.slides, start=1):
+    for slide in presentation.slides:
         slide_title = None
         slide_content = []
         slide_has_arabic = False
@@ -73,20 +72,14 @@ def convert_pptx_to_docx(pptx_bytes: io.BytesIO) -> io.BytesIO:
             else:
                 slide_content.append(text)
 
-        heading_text = f"Slide {slide_index}"
         if slide_title:
-            heading_text += f": {slide_title}"
-
-        heading = document.add_heading(heading_text, level=2)
-        if slide_has_arabic:
-            apply_rtl(heading)
-        if slide_content:
-            for paragraph in slide_content:
-                para = document.add_paragraph(sanitize_text(paragraph))
-                if contains_arabic(paragraph):
-                    apply_rtl(para)
-        else:
-            document.add_paragraph("(No text content found on this slide)")
+            para = document.add_paragraph(sanitize_text(slide_title))
+            if slide_has_arabic:
+                apply_rtl(para)
+        for paragraph in slide_content:
+            para = document.add_paragraph(sanitize_text(paragraph))
+            if contains_arabic(paragraph):
+                apply_rtl(para)
 
     output = io.BytesIO()
     document.save(output)
