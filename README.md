@@ -36,6 +36,8 @@ You need LibreOffice on the machine running the app. Use one of the options belo
   ```
 - **Windows**:
   Download the installer from https://www.libreoffice.org/download/download/ and run it.
+  If the app still cannot find LibreOffice, make sure it's installed in the default
+  `C:\Program Files\LibreOffice\program\soffice.exe` path or update your PATH.
 
 ## Getting the files
 

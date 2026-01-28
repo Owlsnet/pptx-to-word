@@ -80,6 +80,15 @@ def convert_pptx_to_docx(pptx_bytes: io.BytesIO) -> io.BytesIO:
 
 def convert_pptx_to_images(pptx_path: Path, output_dir: Path) -> list[Path]:
     libreoffice = shutil.which("libreoffice") or shutil.which("soffice")
+    if not libreoffice and os.name == "nt":
+        possible_paths = [
+            Path("C:/Program Files/LibreOffice/program/soffice.exe"),
+            Path("C:/Program Files (x86)/LibreOffice/program/soffice.exe"),
+        ]
+        for path in possible_paths:
+            if path.exists():
+                libreoffice = str(path)
+                break
     if not libreoffice:
         raise RuntimeError(
             "LibreOffice is required to render slides. Please install it on the server."
