@@ -5,11 +5,12 @@ A simple Flask web app that converts PPTX presentations into Word documents so t
 ## Features
 
 - Upload a `.pptx` file and download a `.docx` file.
-- Each slide becomes a Word heading with its text content.
-- Arabic text is marked as right-to-left when detected.
+- Slides are rendered as images so layout and graphics stay intact.
 - Lightweight UI for quick conversions.
 
 ## Local setup
+
+This app requires **LibreOffice** to render PPTX slides into images.
 
 ```bash
 python -m venv .venv

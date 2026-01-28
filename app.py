@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import io
 import os
+import shutil
+import subprocess
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
 from flask import Flask, Response, flash, redirect, render_template, request
-from pptx import Presentation
 from werkzeug.utils import secure_filename
 from docx import Document
 
@@ -52,63 +54,60 @@ def convert() -> Response:
 
 
 def convert_pptx_to_docx(pptx_bytes: io.BytesIO) -> io.BytesIO:
-    presentation = Presentation(pptx_bytes)
-    document = Document()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        pptx_path = tmp_path / "upload.pptx"
+        pptx_path.write_bytes(pptx_bytes.getvalue())
 
-    for slide in presentation.slides:
-        slide_title = None
-        slide_content = []
-        slide_has_arabic = False
+        images = convert_pptx_to_images(pptx_path, tmp_path)
+        if not images:
+            raise RuntimeError("No slides were rendered from the PPTX.")
 
-        for shape in slide.shapes:
-            if not shape.has_text_frame:
-                continue
-            text = sanitize_text(shape.text).strip()
-            if not text:
-                continue
-            slide_has_arabic = slide_has_arabic or contains_arabic(text)
-            if slide_title is None:
-                slide_title = text
-            else:
-                slide_content.append(text)
+        document = Document()
+        section = document.sections[0]
+        max_width = section.page_width - section.left_margin - section.right_margin
 
-        if slide_title:
-            para = document.add_paragraph(sanitize_text(slide_title))
-            if slide_has_arabic:
-                apply_rtl(para)
-        for paragraph in slide_content:
-            para = document.add_paragraph(sanitize_text(paragraph))
-            if contains_arabic(paragraph):
-                apply_rtl(para)
+        for index, image_path in enumerate(images):
+            document.add_picture(str(image_path), width=max_width)
+            if index < len(images) - 1:
+                document.add_page_break()
 
-    output = io.BytesIO()
-    document.save(output)
-    output.seek(0)
-    return output
+        output = io.BytesIO()
+        document.save(output)
+        output.seek(0)
+        return output
 
 
-def contains_arabic(text: str) -> bool:
-    return any("\u0600" <= char <= "\u06ff" for char in text)
+def convert_pptx_to_images(pptx_path: Path, output_dir: Path) -> list[Path]:
+    libreoffice = shutil.which("libreoffice") or shutil.which("soffice")
+    if not libreoffice:
+        raise RuntimeError(
+            "LibreOffice is required to render slides. Please install it on the server."
+        )
 
-
-def sanitize_text(text: str) -> str:
-    return "".join(char for char in text if _is_valid_xml_char(char))
-
-
-def _is_valid_xml_char(char: str) -> bool:
-    codepoint = ord(char)
-    return (
-        codepoint in (0x9, 0xA, 0xD)
-        or 0x20 <= codepoint <= 0xD7FF
-        or 0xE000 <= codepoint <= 0xFFFD
-        or 0x10000 <= codepoint <= 0x10FFFF
+    result = subprocess.run(
+        [
+            libreoffice,
+            "--headless",
+            "--convert-to",
+            "png",
+            "--outdir",
+            str(output_dir),
+            str(pptx_path),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
     )
 
+    if result.returncode != 0:
+        raise RuntimeError(
+            "Slide rendering failed. "
+            f"{result.stderr.strip() or result.stdout.strip()}"
+        )
 
-def apply_rtl(paragraph) -> None:
-    paragraph.paragraph_format.right_to_left = True
-    for run in paragraph.runs:
-        run.rtl = True
+    images = sorted(output_dir.glob("*.png"))
+    return images
 
 
 if __name__ == "__main__":
