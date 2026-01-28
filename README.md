@@ -21,6 +21,22 @@ python app.py
 
 Then open `http://localhost:8000` in your browser.
 
+## Install LibreOffice
+
+You need LibreOffice on the machine running the app. Use one of the options below:
+
+- **macOS (Homebrew)**:
+  ```bash
+  brew install --cask libreoffice
+  ```
+- **Ubuntu/Debian**:
+  ```bash
+  sudo apt-get update
+  sudo apt-get install libreoffice
+  ```
+- **Windows**:
+  Download the installer from https://www.libreoffice.org/download/download/ and run it.
+
 ## Getting the files
 
 Use either method below:
