@@ -64,7 +64,7 @@ def convert_pptx_to_docx(pptx_bytes: io.BytesIO) -> io.BytesIO:
         for shape in slide.shapes:
             if not shape.has_text_frame:
                 continue
-            text = shape.text.strip()
+            text = sanitize_text(shape.text).strip()
             if not text:
                 continue
             slide_has_arabic = slide_has_arabic or contains_arabic(text)
@@ -82,7 +82,7 @@ def convert_pptx_to_docx(pptx_bytes: io.BytesIO) -> io.BytesIO:
             apply_rtl(heading)
         if slide_content:
             for paragraph in slide_content:
-                para = document.add_paragraph(paragraph)
+                para = document.add_paragraph(sanitize_text(paragraph))
                 if contains_arabic(paragraph):
                     apply_rtl(para)
         else:
@@ -96,6 +96,20 @@ def convert_pptx_to_docx(pptx_bytes: io.BytesIO) -> io.BytesIO:
 
 def contains_arabic(text: str) -> bool:
     return any("\u0600" <= char <= "\u06ff" for char in text)
+
+
+def sanitize_text(text: str) -> str:
+    return "".join(char for char in text if _is_valid_xml_char(char))
+
+
+def _is_valid_xml_char(char: str) -> bool:
+    codepoint = ord(char)
+    return (
+        codepoint in (0x9, 0xA, 0xD)
+        or 0x20 <= codepoint <= 0xD7FF
+        or 0xE000 <= codepoint <= 0xFFFD
+        or 0x10000 <= codepoint <= 0x10FFFF
+    )
 
 
 def apply_rtl(paragraph) -> None:
