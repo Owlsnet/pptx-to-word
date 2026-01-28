@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PPTX to Word Converter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    {% if turnstile_site_key %}
+      <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    {% endif %}
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>PPTX → Word</h1>
+        <p>Upload a PPTX and download a Word document for easy viewing.</p>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <section class="messages">
+            {% for category, message in messages %}
+              <div class="message message-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </section>
+        {% endif %}
+      {% endwith %}
+
+      <form class="card" method="post" action="/convert" enctype="multipart/form-data">
+        <label for="pptx_file">PPTX file</label>
+        <input id="pptx_file" name="pptx_file" type="file" accept=".pptx" required />
+        {% if turnstile_site_key %}
+          <div class="turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+        {% endif %}
+        <button type="submit">Convert to Word</button>
+        <p class="helper">Slides are rendered as images to keep layouts and graphics intact.</p>
+      </form>
+    </main>
+
+    <footer class="footer">
+      <p>
+        Made by owls — completely open source on
+        <a href="https://github.com/Owlsnet" target="_blank" rel="noreferrer">GitHub</a>.
+      </p>
+    </footer>
+  </body>
+</html>
