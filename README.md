@@ -6,6 +6,7 @@ A simple Flask web app that converts PPTX presentations into Word documents so t
 
 - Upload a `.pptx` file and download a `.docx` file.
 - Slides are rendered as images so layout and graphics stay intact.
+- Uses LibreOffice + PDF rendering to keep every slide included.
 - Lightweight UI for quick conversions.
 
 ## Local setup
